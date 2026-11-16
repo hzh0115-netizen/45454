@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>猜拳終極大對決 - 冒險者版</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --accent: #f59e0b;
+            --accent-hover: #d97706;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            --win-color: #10b981;
+            --lose-color: #ef4444;
+            --draw-color: #3b82f6;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 32px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--accent);
+            margin-bottom: 8px;
+            font-size: 1.8rem;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: var(--text-muted);
+            margin-bottom: 24px;
+            font-size: 0.95rem;
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #e2e8f0;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background-color: #0f172a;
+            color: var(--text-main);
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--accent);
+        }
+
+        .equip-grid {
+            display: grid;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .equip-card {
+            background-color: #0f172a;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            padding: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .equip-card:hover {
+            border-color: #64748b;
+        }
+
+        .equip-card.selected {
+            border-color: var(--accent);
+            background-color: rgba(245, 158, 11, 0.1);
+        }
+
+        .equip-title {
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-bottom: 4px;
+            color: #f8fafc;
+        }
+
+        .equip-desc {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            background-color: var(--accent);
+            color: #0f172a;
+            font-weight: bold;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .btn:hover {
+            background-color: var(--accent-hover);
+        }
+
+        /* 遊戲畫面樣式 */
+        .player-banner {
+            background-color: #0f172a;
+            padding: 12px 16px;
+            border-radius: 8px;
+            border-left: 4px solid var(--accent);
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .scoreboard {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            background-color: #0f172a;
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border-color);
+        }
+
+        .score-box {
+            text-align: center;
+        }
+
+        .score-label {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .score-num {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--accent);
+        }
+
+        .round-badge {
+            background-color: var(--border-color);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+
+        .skill-box {
+            background-color: rgba(59, 130, 246, 0.15);
+            border: 1px solid #3b82f6;
+            color: #93c5fd;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+            text-align: center;
+            min-height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .choices {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .choice-btn {
+            background-color: #0f172a;
+            border: 2px solid var(--border-color);
+            color: var(--text-main);
+            padding: 20px 10px;
+            border-radius: 12px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .choice-btn span.emoji {
+            font-size: 2.2rem;
+        }
+
+        .choice-btn:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .log-box {
+            background-color: #0f172a;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px;
+            min-height: 110px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            gap: 8px;
+        }
+
+        .result-win { color: var(--win-color); font-weight: bold; font-size: 1.1rem; }
+        .result-lose { color: var(--lose-color); font-weight: bold; font-size: 1.1rem; }
+        .result-draw { color: var(--draw-color); font-weight: bold; font-size: 1.1rem; }
+
+        .final-box {
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        .final-title {
+            font-size: 1.6rem;
+            margin-bottom: 12px;
+            color: var(--accent);
+        }
+
+        .final-desc {
+            font-size: 1.1rem;
+            margin-bottom: 24px;
+            line-height: 1.6;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-secondary {
+            background-color: var(--border-color);
+            color: var(--text-main);
+        }
+
+        .btn-secondary:hover {
+            background-color: #475569;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>✊✋✌️ 猜拳終極大對決</h1>
+    <p class="subtitle">先獲得 5 勝的一方就是最終贏家！</p>
+
+    <!-- 1. 登入與裝備選擇畫面 -->
+    <div id="setup-section" class="section active">
+        <div class="form-group">
+            <label for="player-name">請輸入你的冒險者名字：</label>
+            <input type="text" id="player-name" placeholder="例如：亞瑟" autocomplete="off">
+        </div>
+
+        <label>🗡️ 請選擇你的初始裝備 (點擊選擇)：</label>
+        <div class="equip-grid">
+            <div class="equip-card" data-equip="1" onclick="selectEquip(1)">
+                <div class="equip-title">1. 聖光之劍 ⚔️</div>
+                <div class="equip-desc">技能：預知未來 — 出拳前會先知道電腦準備出什麼</div>
+            </div>
+            <div class="equip-card" data-equip="2" onclick="selectEquip(2)">
+                <div class="equip-title">2. 元素魔杖 🔮</div>
+                <div class="equip-desc">技能：岩石詛咒 — 強制讓電腦這回合只能出「石頭」</div>
+            </div>
+            <div class="equip-card" data-equip="3" onclick="selectEquip(3)">
+                <div class="equip-title">3. 暗影雙刃 🗡️</div>
+                <div class="equip-desc">技能：影縫之術 — 強制讓電腦這回合只能出「剪刀」</div>
+            </div>
+        </div>
+
+        <button class="btn" onclick="startGame()">開始冒險挑戰</button>
+    </div>
+
+    <!-- 2. 戰鬥主畫面 -->
+    <div id="game-section" class="section">
+        <div class="player-banner" id="system-broadcast"></div>
+
+        <div class="scoreboard">
+            <div class="score-box">
+                <div class="score-label" id="player-label">你</div>
+                <div class="score-num" id="player-score">0</div>
+            </div>
+            <div class="round-badge" id="round-display">第 1 回合</div>
+            <div class="score-box">
+                <div class="score-label">電腦 🤖</div>
+                <div class="score-num" id="computer-score">0</div>
+            </div>
+        </div>
+
+        <div class="skill-box" id="skill-notification">
+            準備觸發裝備技能...
+        </div>
+
+        <div class="choices">
+            <button class="choice-btn" onclick="playRound('剪刀')">
+                <span class="emoji">✌️</span>
+                <span>剪刀</span>
+            </button>
+            <button class="choice-btn" onclick="playRound('石頭')">
+                <span class="emoji">✊</span>
+                <span>石頭</span>
+            </button>
+            <button class="choice-btn" onclick="playRound('布')">
+                <span class="emoji">✋</span>
+                <span>布</span>
+            </button>
+        </div>
+
+        <div class="log-box" id="round-log">
+            <span style="color: var(--text-muted);">請點擊上方按鈕出拳！</span>
+        </div>
+    </div>
+
+    <!-- 3. 最終結算畫面 -->
+    <div id="end-section" class="section">
+        <div class="final-box">
+            <div class="final-title">🌟 最終結果 🌟</div>
+            <div class="final-desc" id="final-message"></div>
+            <div class="btn-group">
+                <button class="btn" onclick="resetMatch()">再挑戰一次 (開始新局)</button>
+                <button class="btn btn-secondary" onclick="exitGame()">離開冒險</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const options = ["剪刀", "石頭", "布"];
+    let playerName = "";
+    let selectedEquipId = null;
+    let equipmentName = "";
+    let playerWins = 0;
+    let computerWins = 0;
+    let roundNum = 1;
+    let currentComputerChoice = "";
+
+    function selectEquip(id) {
+        selectedEquipId = id;
+        document.querySelectorAll('.equip-card').forEach(card => {
+            card.classList.remove('selected');
+        });
+        document.querySelector(`.equip-card[data-equip="${id}"]`).classList.add('selected');
+    }
+
+    function switchSection(sectionId) {
+        document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
+        document.getElementById(sectionId).classList.add('active');
+    }
+
+    function startGame() {
+        const nameInput = document.getElementById('player-name').value.trim();
+        playerName = nameInput || "無名冒險者";
+
+        let warningMsg = "";
+        if (selectedEquipId === 1) {
+            equipmentName = "聖光之劍 ⚔️";
+        } else if (selectedEquipId === 2) {
+            equipmentName = "元素魔杖 🔮";
+        } else if (selectedEquipId === 3) {
+            equipmentName = "暗影雙刃 🗡️";
+        } else {
+            equipmentName = "新手木棍 🪵";
+            warningMsg = "<br><span style='color: #fbbf24;'>⚠️ 未選擇裝備，系統已自動為你裝備【新手木棍】！</span>";
+        }
+
+        document.getElementById('system-broadcast').innerHTML = 
+            `<strong>=== 系統廣播 ===</strong><br>` +
+            `歡迎勇敢的冒險者【${escapeHtml(playerName)}】！<br>` +
+            `你裝備了【${equipmentName}】，準備好迎接【猜拳】挑戰！` + warningMsg;
+
+        document.getElementById('player-label').textContent = playerName;
+        resetMatch();
+    }
+
+    function resetMatch() {
+        playerWins = 0;
+        computerWins = 0;
+        roundNum = 1;
+        document.getElementById('round-log').innerHTML = '<span style="color: var(--text-muted);">新的一局開始！請點擊上方按鈕出拳！</span>';
+        updateScoreboard();
+        prepareRound();
+        switchSection('game-section');
+    }
+
+    function prepareRound() {
+        document.getElementById('round-display').textContent = `第 ${roundNum} 回合`;
+        
+        // 1. 電腦先決定預定出的拳
+        currentComputerChoice = options[Math.floor(Math.random() * options.length)];
+
+        // 2. 觸發裝備特殊技能
+        const skillBox = document.getElementById('skill-notification');
+        if (equipmentName === "聖光之劍 ⚔️") {
+            skillBox.innerHTML = `🔮【聖光之劍】技能發動：預知到電腦準備出「<strong>${currentComputerChoice}</strong>」！`;
+        } else if (equipmentName === "元素魔杖 🔮") {
+            currentComputerChoice = "石頭";
+            skillBox.innerHTML = `🔮【元素魔杖】技能發動：施展岩石詛咒，強制電腦這回合只能出「<strong>石頭</strong>」！`;
+        } else if (equipmentName === "暗影雙刃 🗡️") {
+            currentComputerChoice = "剪刀";
+            skillBox.innerHTML = `🗡️【暗影雙刃】技能發動：施展影縫之術，強制電腦這回合只能出「<strong>剪刀</strong>」！`;
+        } else {
+            skillBox.innerHTML = `🪵【新手木棍】沒有特殊技能，憑實力決勝負吧！`;
+        }
+    }
+
+    function playRound(playerChoice) {
+        const logBox = document.getElementById('round-log');
+        let resultHtml = `<div>你出了：<strong>${playerChoice}</strong> ｜ 🤖 電腦最終出了：<strong>${currentComputerChoice}</strong></div>`;
+
+        if (playerChoice === currentComputerChoice) {
+            resultHtml += `<div class="result-draw">平手！沒有人得分。</div>`;
+        } else if (
+            (playerChoice === "剪刀" && currentComputerChoice === "布") ||
+            (playerChoice === "石頭" && currentComputerChoice === "剪刀") ||
+            (playerChoice === "布" && currentComputerChoice === "石頭")
+        ) {
+            resultHtml += `<div class="result-win">🎉 這回合你贏了！獲得 1 分！</div>`;
+            playerWins++;
+        } else {
+            resultHtml += `<div class="result-lose">💥 這回合電腦贏了！電腦獲得 1 分！</div>`;
+            computerWins++;
+        }
+
+        logBox.innerHTML = resultHtml;
+        updateScoreboard();
+
+        if (playerWins >= 5 || computerWins >= 5) {
+            setTimeout(showEndScreen, 800);
+        } else {
+            roundNum++;
+            prepareRound();
+        }
+    }
+
+    function updateScoreboard() {
+        document.getElementById('player-score').textContent = playerWins;
+        document.getElementById('computer-score').textContent = computerWins;
+    }
+
+    function showEndScreen() {
+        const finalMsg = document.getElementById('final-message');
+        if (playerWins >= 5) {
+            finalMsg.innerHTML = `🏆 恭喜你善用【${equipmentName}】的力量，<br>以 <strong>${playerWins} : ${computerWins}</strong> 擊敗了電腦！`;
+        } else {
+            finalMsg.innerHTML = `💻 很可惜，電腦以 <strong>${computerWins} : ${playerWins}</strong> 獲得了最終勝利，<br>下次再來挑戰吧！`;
+        }
+        switchSection('end-section');
+    }
+
+    function exitGame() {
+        const finalMsg = document.getElementById('final-message');
+        finalMsg.innerHTML = `感謝冒險者【${escapeHtml(playerName)}】的遊玩，期待下次見面！冒險結束！`;
+        document.querySelector('.btn-group').innerHTML = `<button class="btn" onclick="location.reload()">重新登入</button>`;
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+</script>
+
+</body>
+</html>
